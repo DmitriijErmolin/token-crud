@@ -1,22 +1,33 @@
-from rest_framework.views import APIView
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import status
-from .serializers import UserSerializer
-from rest_framework.decorators import api_view, permission_classes
-from .models import User
 from rest_framework_jwt.utils import jwt_payload_handler
-import jwt
+from rest_framework.decorators import api_view
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .serializers import UserSerializer
+from .models import User
 from django_auth import settings
 from django.contrib.auth.signals import user_logged_in
-from django.http.response import JsonResponse
+import jwt
+
+
+class UserViewSet(ModelViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
+    permission_classes_by_action = {'create': [AllowAny],
+                                    'list': [IsAuthenticated],
+                                    'retrieve': [IsAuthenticated]}
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny, ])
 def authenticate_user(request):
-
     try:
         email = request.data['email']
         password = request.data['password']
@@ -40,57 +51,3 @@ def authenticate_user(request):
     except KeyError:
         res = {'error': 'please provide a email and a password'}
         return Response(res)
-
-
-@api_view(['GET', 'POST'])
-def users_list(request):
-    if request.method == 'GET':
-        users = User.objects.all()
-        users_serializer = UserSerializer(users, many=True)
-        return JsonResponse(users_serializer.data, safe=False)
-    elif request.method == "POST":
-        user = request.data
-        serializer = UserSerializer(data=user)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-@permission_classes([IsAuthenticated, ])
-def user_detail(request, pk):
-    try:
-        user = User.objects.get(pk=pk)
-    except User.DoesNotExist:
-        return JsonResponse({'message': 'This user does not exist'}, status=status.HTTP_404_NOT_FOUND)
-    if request.method == "PUT":
-        user_data = request.data
-        serializer = UserSerializer(user, data=user_data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    elif request.method == "PATCH":
-        user_data = request.data
-        serializer = UserSerializer(user, data=user_data, partial=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    elif request.method == "DELETE":
-        if request.data.get("is_active") == 'False':
-            user_data = {"is_active": request.data['is_active']}
-            print(user_data)
-            serializer = UserSerializer(user, data=user_data, partial=True)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return JsonResponse(serializer.data)
-            return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        return JsonResponse({'message': 'Bad request'}, status=status.HTTP_400_BAD_REQUEST)
-    if request.data.get("email") == user.email and request.data.get("password") == user.password \
-            and request.data.get("is_active") is not None:
-        if request.method == 'GET':
-            user_serializer = UserSerializer(user)
-            return JsonResponse(user_serializer.data)
-    return JsonResponse({'message': 'Bad request'}, status=status.HTTP_400_BAD_REQUEST)

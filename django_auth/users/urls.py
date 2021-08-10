@@ -1,8 +1,12 @@
-from django.conf.urls import url
-from .views import authenticate_user, users_list, user_detail
+from rest_framework.routers import DefaultRouter
+from . import views
+from django.urls import path, include
+
+router = DefaultRouter()
+router.register(r'users', views.UserViewSet, basename='users')
 
 urlpatterns = [
-    url(r'^users/obtain_token$', authenticate_user),
-    url(r'^users/$', users_list),
-    url(r'^users/(?P<pk>[0-9]+)$', user_detail)
+    path("obtain_token/", views.authenticate_user),
+    path("", include(router.urls)),
+
 ]
