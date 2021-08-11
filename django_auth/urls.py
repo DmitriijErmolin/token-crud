@@ -1,4 +1,4 @@
-"""django_auth URL Configuration
+"""django_auth_all URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.2/topics/http/urls/
