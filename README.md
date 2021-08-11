@@ -8,7 +8,9 @@ $ git clone https://github.com/DmitriijErmolin/token-crud.git
 $ cd token-crud/
 $ pip install -r requirements.txt
 $ connect to your database and change settings in django_auth/settings.py
-!(./ReadMeFiles/Database_settings.jpg)
+```
+![](./ReadMeFiles/Database_settings.jpg)
+```sh
 $ python manage.py migrate
 $ python manage.py runserver
 ```
