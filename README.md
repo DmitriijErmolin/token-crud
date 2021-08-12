@@ -32,3 +32,18 @@ Run server
 ```sh
 $ python manage.py runserver
 ```
+# Examples
+To create a user, you need to go through the domain / users / and send the data using the POST method
+![](./Examples/Create/create.jpg)\
+After that, you need to obtain token for user (use post method on /obtain_token/)
+![](./Examples/Get_token/Get_token.jpg)\
+Add headers to you methods:\
+{"Content-Type": "application/json",\
+"Authorization": "Bearer <b>your token</b>"}\
+Finally you get access to methods such as READ, PUT, PATCH and DELETE\
+Read:
+![](./Examples/Read/Read_with_token_one.jpg)\
+PUT and PUTCH:
+![](./Examples/Update/Patch.jpg)\
+DELETE:
+![](./Examples/Delete/Delete.jpg)\
